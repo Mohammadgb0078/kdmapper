@@ -1,0 +1,40 @@
+
+name: Build Windows x64
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-2025-vs2026
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Restore NuGet packages
+        run: nuget restore kdmapper.sln
+
+      - name: Build Release x64
+        run: |
+          msbuild kdmapper.sln /m /t:Build /p:Configuration=Release /p:Platform=x64 /p:RestorePackagesConfig=true
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Windows-x64-Release
+          path: |
+            **/x64/Release/**/*.exe
+            **/x64/Release/**/*.dll
+            **/x64/Release/**/*.sys
+            **/x64/Release/**/*.pdb
+            **/x64/Release/**/*.inf
+            **/x64/Release/**/*.cat
+          if-no-files-found: warn
+          retention-days: 7
